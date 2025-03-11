@@ -1,7 +1,7 @@
 const GREEN = 'g';
 const YELLOW = 'y';
 const BLACK = 'b';
-
+// making a change
 class Wordle {
   word;
   constructor(word) {

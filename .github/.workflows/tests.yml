@@ -1,0 +1,9 @@
+# TODO: need to finish this
+
+name: Run Test on Push
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Wordle, GREEN, YELLOW, BLACK } from '../classes/Wordle';
 import { getRandomWord, isValidWord } from '../utils/wordHelper';
 
+// Create an initial keyboard state for A-Z with no color.
 const createInitialKeyboardState = () => {
   const state = {};
   'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((letter) => {
@@ -12,8 +13,14 @@ const createInitialKeyboardState = () => {
 
 const initialKeyboardState = createInitialKeyboardState();
 
+// QWERTY layout rows for the keyboard.
+const qwertyRows = [
+  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+  ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+];
+
 // Helper function to update the keyboard state based on the latest guess feedback.
-// Priority: green > yellow > grey.
 const updateKeyboardState = (currentKeyboard, guess, feedback) => {
   const newKeyboard = { ...currentKeyboard };
   for (let i = 0; i < guess.length; i++) {
@@ -28,7 +35,7 @@ const updateKeyboardState = (currentKeyboard, guess, feedback) => {
       newColor = 'grey';
     }
     const currentColor = newKeyboard[letter];
-    // Update color only if new color is a "better" state.
+    // Update color only if the new color is a "better" state.
     if (currentColor === 'green') continue;
     if (newColor === 'green') {
       newKeyboard[letter] = newColor;
@@ -41,14 +48,46 @@ const updateKeyboardState = (currentKeyboard, guess, feedback) => {
   return newKeyboard;
 };
 
-// QWERTY layout rows for the keyboard.
-const qwertyRows = [
-  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-  ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
-];
+// Keyboard component that uses the QWERTY layout.
+const Keyboard = ({ keyboardState }) => {
+  return (
+    <div style={{ marginTop: '30px' }}>
+      <h2>Keyboard</h2>
+      {qwertyRows.map((row, rowIndex) => (
+        <div
+          key={rowIndex}
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: '5px',
+          }}
+        >
+          {row.map((letter) => (
+            <div
+              key={letter}
+              style={{
+                width: '40px',
+                height: '40px',
+                lineHeight: '40px',
+                margin: '3px',
+                textAlign: 'center',
+                backgroundColor: keyboardState[letter] || 'lightgray',
+                color: 'white',
+                borderRadius: '4px',
+                fontWeight: 'bold',
+              }}
+            >
+              {letter}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const WordleGame = () => {
+  const [difficulty, setDifficulty] = useState('easy');
   const [targetWord, setTargetWord] = useState('');
   const [guess, setGuess] = useState('');
   const [guessRows, setGuessRows] = useState([]); // Each element: { guess: string, feedback: [] }
@@ -57,7 +96,7 @@ const WordleGame = () => {
 
   // Function to start a new game by resetting state.
   const startNewGame = () => {
-    const randomWord = getRandomWord();
+    const randomWord = getRandomWord(difficulty);
     setTargetWord(randomWord);
     setGuess('');
     setGuessRows([]);
@@ -72,8 +111,14 @@ const WordleGame = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!isValidWord(guess)) {
-      setError('Invalid word! Please try a valid five-letter word.');
+    if (guess.length !== targetWord.length) {
+      setError(`Please enter a ${targetWord.length}-letter word.`);
+      return;
+    }
+    if (!isValidWord(guess, difficulty)) {
+      setError(
+        `Invalid word! Please try a valid ${targetWord.length}-letter word.`
+      );
       return;
     }
     setError('');
@@ -95,6 +140,19 @@ const WordleGame = () => {
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
       <h1>Wordle Game</h1>
+      <div style={{ marginBottom: '20px' }}>
+        <label>
+          Difficulty:&nbsp;
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+          >
+            <option value="easy">Easy (5 letters)</option>
+            <option value="medium">Medium (6 letters)</option>
+            <option value="hard">Hard (7 letters)</option>
+          </select>
+        </label>
+      </div>
       <button
         onClick={startNewGame}
         style={{ marginBottom: '20px', padding: '8px 16px' }}
@@ -106,6 +164,7 @@ const WordleGame = () => {
           type="text"
           value={guess}
           onChange={(e) => setGuess(e.target.value.toLowerCase())}
+          autoCapitalize="none"
           maxLength={targetWord.length}
           style={{
             fontSize: '1.2rem',
@@ -153,44 +212,6 @@ const WordleGame = () => {
       </div>
       {/* Render the keyboard */}
       <Keyboard keyboardState={keyboardState} />
-    </div>
-  );
-};
-
-// Updated Keyboard component using QWERTY layout.
-const Keyboard = ({ keyboardState }) => {
-  return (
-    <div style={{ marginTop: '30px' }}>
-      <h2>Keyboard</h2>
-      {qwertyRows.map((row, rowIndex) => (
-        <div
-          key={rowIndex}
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: '5px',
-          }}
-        >
-          {row.map((letter) => (
-            <div
-              key={letter}
-              style={{
-                width: '40px',
-                height: '40px',
-                lineHeight: '40px',
-                margin: '3px',
-                textAlign: 'center',
-                backgroundColor: keyboardState[letter] || 'lightgray',
-                color: 'white',
-                borderRadius: '4px',
-                fontWeight: 'bold',
-              }}
-            >
-              {letter}
-            </div>
-          ))}
-        </div>
-      ))}
     </div>
   );
 };

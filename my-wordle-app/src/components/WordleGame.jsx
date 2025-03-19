@@ -105,7 +105,7 @@ const WordleGame = () => {
         <input
           type="text"
           value={guess}
-          onChange={(e) => setGuess(e.target.value)}
+          onChange={(e) => setGuess(e.target.value.toLowerCase)}
           maxLength={targetWord.length}
           style={{
             fontSize: '1.2rem',

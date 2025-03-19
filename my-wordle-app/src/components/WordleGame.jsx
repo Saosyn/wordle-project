@@ -86,6 +86,7 @@ const WordleGame = () => {
   const [highScores, setHighScores] = useState(getHighScores());
 
   const timerIntervalRef = useRef(null);
+  // Set startTimeRef to null initially, so timer doesn't start until first guess
   const startTimeRef = useRef(null);
 
   // Start a new game using the selected difficulty
@@ -99,11 +100,9 @@ const WordleGame = () => {
     setGameOver(false);
     setScore(null);
     setElapsedTime(0);
-    startTimeRef.current = Date.now();
+    // Reset timer: don't start it yet
+    startTimeRef.current = null;
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    timerIntervalRef.current = setInterval(() => {
-      setElapsedTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
-    }, 1000);
   };
 
   // When difficulty changes, start a new game
@@ -155,6 +154,13 @@ const WordleGame = () => {
         `Invalid word! Please try a valid ${targetWord.length}-letter word.`
       );
       return;
+    }
+    // Start the timer on the first guess, if it hasn't started yet
+    if (!startTimeRef.current) {
+      startTimeRef.current = Date.now();
+      timerIntervalRef.current = setInterval(() => {
+        setElapsedTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
+      }, 1000);
     }
     setError('');
     const wordleInstance = new Wordle(targetWord);
@@ -213,7 +219,7 @@ const WordleGame = () => {
           overflowY: 'auto',
           padding: '10px',
           marginBottom: '10px',
-          background: guessRows.length > 0 ? '#242424' : 'transparent',
+          background: '#242424',
         }}
       >
         {guessRows.map((row, rowIndex) => (
@@ -298,7 +304,8 @@ const WordleGame = () => {
           <div
             style={{
               marginTop: '5px',
-              background: '#2d323b',
+              background: '#242424',
+              color: 'rgba(255, 255, 255, 0.87)',
               padding: '10px',
               borderRadius: '4px',
             }}
@@ -343,7 +350,7 @@ const WordleGame = () => {
                   margin: '3px',
                   textAlign: 'center',
                   backgroundColor: keyboardState[letter] || 'lightgray',
-                  color: '#2d323b',
+                  color: '#6b6d70',
                   borderRadius: '4px',
                   fontWeight: 'bold',
                 }}
